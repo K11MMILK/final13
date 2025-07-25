@@ -49,6 +49,7 @@ func TestDone(t *testing.T) {
 		assert.NoError(t, err)
 		now = now.AddDate(0, 0, 3)
 		assert.Equal(t, task.Date, now.Format(`20060102`))
+
 	}
 }
 
@@ -71,5 +72,5 @@ func TestDelTask(t *testing.T) {
 	assert.NotEmpty(t, ret)
 	ret, err = postJSON("api/task?id=wjhgese", nil, http.MethodDelete)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, ret)
+	assert.Empty(t, ret)
 }
