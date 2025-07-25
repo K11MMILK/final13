@@ -8,13 +8,15 @@ import (
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	if id == "" {
-		writeJSON(w, map[string]string{"error": "id not specified"})
+		writeError(w, http.StatusBadRequest, "id not specified")
 		return
 	}
+
 	err := db.DeleteTask(id)
 	if err != nil {
-		writeJSON(w, map[string]string{"error": "failed to delete task"})
+		writeError(w, http.StatusInternalServerError, "failed to delete task")
 		return
 	}
+
 	writeJSON(w, map[string]string{})
 }

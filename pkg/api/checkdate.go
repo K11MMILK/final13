@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -13,9 +14,13 @@ import (
 
 func writeJSON(w http.ResponseWriter, data any) {
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(data)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		log.Printf("writeJSON error: %v", err)
+	}
 }
-func writeError(w http.ResponseWriter, msg string) {
+
+func writeError(w http.ResponseWriter, code int, msg string) {
+	w.WriteHeader(code)
 	writeJSON(w, map[string]string{
 		"error": msg,
 	})

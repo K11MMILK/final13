@@ -26,7 +26,7 @@ func getTasksHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		writeError(w, "error reading tasks")
+		writeError(w, http.StatusInternalServerError, "error reading tasks")
 		return
 	}
 

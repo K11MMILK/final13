@@ -16,13 +16,13 @@ func signInHandler(w http.ResponseWriter, r *http.Request) {
 		Password string `json:"password"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, map[string]string{"error": "Invalid JSON"})
+		writeError(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
 	expected := os.Getenv("TODO_PASSWORD")
 	if expected == "" || req.Password != expected {
-		writeJSON(w, map[string]string{"error": "Invalid password"})
+		writeError(w, http.StatusUnauthorized, "Invalid password")
 		return
 	}
 
@@ -33,7 +33,7 @@ func signInHandler(w http.ResponseWriter, r *http.Request) {
 
 	signed, err := token.SignedString([]byte("secret_key"))
 	if err != nil {
-		writeJSON(w, map[string]string{"error": "Token generation error"})
+		writeError(w, http.StatusInternalServerError, "Token generation error")
 		return
 	}
 
@@ -50,7 +50,7 @@ func auth(next http.HandlerFunc) http.HandlerFunc {
 
 		cookie, err := r.Cookie("token")
 		if err != nil {
-			http.Error(w, "Authentication required", http.StatusUnauthorized)
+			writeError(w, http.StatusUnauthorized, "Authentication required")
 			return
 		}
 
@@ -58,14 +58,19 @@ func auth(next http.HandlerFunc) http.HandlerFunc {
 			return []byte("secret_key"), nil
 		})
 		if err != nil || !token.Valid {
-			http.Error(w, "Authentication failed", http.StatusUnauthorized)
+			writeError(w, http.StatusUnauthorized, "Authentication failed")
 			return
 		}
 
-		claims := token.Claims.(jwt.MapClaims)
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			writeError(w, http.StatusUnauthorized, "Invalid token format")
+			return
+		}
+
 		hash := fmt.Sprintf("%x", sha256.Sum256([]byte(pass)))
 		if claims["hash"] != hash {
-			http.Error(w, "Token not valid anymore", http.StatusUnauthorized)
+			writeError(w, http.StatusUnauthorized, "Token not valid anymore")
 			return
 		}
 

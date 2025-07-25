@@ -9,21 +9,20 @@ import (
 
 func taskDoneHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-
 	if id == "" {
-		writeJSON(w, map[string]string{"error": "id not specified"})
+		writeError(w, http.StatusBadRequest, "id not specified")
 		return
 	}
 
 	task, err := db.GetTask(id)
 	if err != nil {
-		writeJSON(w, map[string]string{"error": "task not found"})
+		writeError(w, http.StatusNotFound, "task not found")
 		return
 	}
 
 	if task.Repeat == "" {
 		if err := db.DeleteTask(id); err != nil {
-			writeJSON(w, map[string]string{"error": "failed to delete task"})
+			writeError(w, http.StatusInternalServerError, "failed to delete task")
 			return
 		}
 		writeJSON(w, map[string]string{})
@@ -32,7 +31,7 @@ func taskDoneHandler(w http.ResponseWriter, r *http.Request) {
 
 	now, err := parseDateString(task.Date)
 	if err != nil {
-		writeJSON(w, map[string]string{"error": "invalid task date"})
+		writeError(w, http.StatusBadRequest, "invalid task date")
 		return
 	}
 
@@ -40,12 +39,12 @@ func taskDoneHandler(w http.ResponseWriter, r *http.Request) {
 
 	next, err := scheduler.NextDate(now, task.Date, task.Repeat, true)
 	if err != nil {
-		writeJSON(w, map[string]string{"error": "failed to calculate next date"})
+		writeError(w, http.StatusBadRequest, "failed to calculate next date")
 		return
 	}
 
 	if err := db.UpdateDate(next, id); err != nil {
-		writeJSON(w, map[string]string{"error": "failed to update date"})
+		writeError(w, http.StatusInternalServerError, "failed to update date")
 		return
 	}
 

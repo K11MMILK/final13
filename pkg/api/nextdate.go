@@ -19,14 +19,14 @@ func nextDayHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		now, err = time.Parse("20060102", nowStr)
 		if err != nil {
-			http.Error(w, "invalid now format", http.StatusBadRequest)
+			writeError(w, http.StatusBadRequest, "invalid now format")
 			return
 		}
 	}
 
 	next, err := scheduler.NextDate(now, dstart, repeat, true)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 

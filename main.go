@@ -22,7 +22,7 @@ func main() {
 
 	dbFile := os.Getenv("TODO_DBFILE")
 	if dbFile == "" {
-		dbFile = tests.DBFile
+		dbFile = "scheduler.db"
 	}
 
 	if err := db.Init(dbFile); err != nil {
